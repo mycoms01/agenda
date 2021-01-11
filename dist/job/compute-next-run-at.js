@@ -63,6 +63,7 @@ var computeNextRunAt = function () {
         if (timezone) {
             cronOptions.tz = timezone;
         }
+        var isError = false;
         try {
             var cronTime = parser.parseExpression(interval, cronOptions);
             var nextDate = cronTime.next().toDate();
@@ -93,6 +94,7 @@ var computeNextRunAt = function () {
             // Either `xo` linter or Node.js 8 stumble on this line if it isn't just ignored
         }
         catch (_e) {
+            isError = true;
             debug('[%s:%s] failed nextRunAt based on interval [%s]', _this.attrs.name, _this.attrs._id, interval);
             // Nope, humanInterval then!
             try {
@@ -110,18 +112,22 @@ var computeNextRunAt = function () {
         }
         finally {
             // If endDate is less than the nextDate, set nextDate to null to stop the job from running further
-            if (endDate !== null) {
-                var dateNow_1 = new Date();
-                var nextDate = _this.attrs.nextRunAt;
-                var endDateDate = moment_timezone_1.default.tz(endDate, timezone).toDate();
-                if (nextDate > endDateDate) {
-                    _this.attrs.nextRunAt = null;
-                }
-            }
             if (Number.isNaN(_this.attrs.nextRunAt.getTime())) {
                 _this.attrs.nextRunAt = undefined;
                 debug('[%s:%s] failed to calculate nextRunAt due to invalid repeat interval', _this.attrs.name, _this.attrs._id);
                 _this.fail('failed to calculate nextRunAt due to invalid repeat interval');
+            }
+            if (isError) {
+                if (_this.attrs.nextRunAt !== undefined) {
+                    if (endDate !== null) {
+                        var dateNow_1 = new Date();
+                        var nextDate = _this.attrs.nextRunAt;
+                        var endDateDate = moment_timezone_1.default.tz(endDate, timezone).toDate();
+                        if (nextDate > endDateDate) {
+                            _this.attrs.nextRunAt = undefined;
+                        }
+                    }
+                }
             }
         }
     };

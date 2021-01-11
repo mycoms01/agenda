@@ -42,6 +42,7 @@ export const computeNextRunAt = function(this: Job) {
     if (timezone) {
       cronOptions.tz = timezone;
     }
+    let isError=false
 
     try {
       let cronTime = parser.parseExpression(interval, cronOptions);
@@ -73,6 +74,7 @@ export const computeNextRunAt = function(this: Job) {
       debug('[%s:%s] nextRunAt set to [%s]', this.attrs.name, this.attrs._id, this.attrs.nextRunAt.toISOString());
     // Either `xo` linter or Node.js 8 stumble on this line if it isn't just ignored
     } catch {
+      isError=true
       debug('[%s:%s] failed nextRunAt based on interval [%s]', this.attrs.name, this.attrs._id, interval);
       // Nope, humanInterval then!
       try {
@@ -88,14 +90,7 @@ export const computeNextRunAt = function(this: Job) {
     } finally {
 
       // If endDate is less than the nextDate, set nextDate to null to stop the job from running further
-      if (endDate !== null) {
-        const dateNow = new Date();
-        const nextDate =this.attrs.nextRunAt;
-        const endDateDate: Date = moment.tz(endDate, timezone).toDate();
-        if (nextDate > endDateDate) {
-          this.attrs.nextRunAt = null;
-        }
-      }
+
 
 
 
@@ -103,6 +98,18 @@ export const computeNextRunAt = function(this: Job) {
         this.attrs.nextRunAt = undefined;
         debug('[%s:%s] failed to calculate nextRunAt due to invalid repeat interval', this.attrs.name, this.attrs._id);
         this.fail('failed to calculate nextRunAt due to invalid repeat interval');
+      }
+      if(isError){
+      if(this.attrs.nextRunAt !== undefined){
+        if (endDate !== null) {
+          const dateNow = new Date();
+          const nextDate =this.attrs.nextRunAt;
+          const endDateDate: Date = moment.tz(endDate, timezone).toDate();
+          if (nextDate > endDateDate) {
+            this.attrs.nextRunAt = undefined;
+          }
+        }
+        }
       }
     }
   };
