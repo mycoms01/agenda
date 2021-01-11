@@ -55,7 +55,7 @@ export const computeNextRunAt = function(this: Job) {
 
       // If start date is present, check if the nextDate should be larger or equal to startDate. If not set startDate as nextDate
       if (startDate !== null) {
-        startDate = moment.tz(moment(startDate).format('YYYY-MM-DD'), timezone).toDate();
+        startDate = moment.tz(startDate, timezone).toDate();
         if (startDate > nextDate) {
           cronOptions.currentDate = startDate;
           cronTime = parser.parseExpression(interval, cronOptions);
@@ -72,7 +72,7 @@ export const computeNextRunAt = function(this: Job) {
 
       // If endDate is less than the nextDate, set nextDate to null to stop the job from running further
       if (endDate !== null) {
-        const endDateDate: Date = moment.tz(moment(endDate).format('YYYY-MM-DD'), timezone).toDate();
+        const endDateDate: Date = moment.tz(endDate, timezone).toDate();
         if (nextDate > endDateDate) {
           nextDate = null;
         }
