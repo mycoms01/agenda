@@ -88,13 +88,6 @@ var computeNextRunAt = function () {
                 }
                 catch (_d) { }
             }
-            // If endDate is less than the nextDate, set nextDate to null to stop the job from running further
-            if (endDate !== null) {
-                var endDateDate = moment_timezone_1.default.tz(endDate, timezone).toDate();
-                if (nextDate > endDateDate) {
-                    nextDate = null;
-                }
-            }
             _this.attrs.nextRunAt = nextDate;
             debug('[%s:%s] nextRunAt set to [%s]', _this.attrs.name, _this.attrs._id, _this.attrs.nextRunAt.toISOString());
             // Either `xo` linter or Node.js 8 stumble on this line if it isn't just ignored
@@ -116,6 +109,15 @@ var computeNextRunAt = function () {
             catch (_f) { }
         }
         finally {
+            // If endDate is less than the nextDate, set nextDate to null to stop the job from running further
+            if (endDate !== null) {
+                var dateNow_1 = new Date();
+                var nextDate = _this.attrs.nextRunAt;
+                var endDateDate = moment_timezone_1.default.tz(endDate, timezone).toDate();
+                if (nextDate > endDateDate) {
+                    _this.attrs.nextRunAt = null;
+                }
+            }
             if (Number.isNaN(_this.attrs.nextRunAt.getTime())) {
                 _this.attrs.nextRunAt = undefined;
                 debug('[%s:%s] failed to calculate nextRunAt due to invalid repeat interval', _this.attrs.name, _this.attrs._id);
